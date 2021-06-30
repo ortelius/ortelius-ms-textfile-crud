@@ -10,7 +10,7 @@ app = Flask(__name__)
 api = Api(app)
 
 # Initialize database connection
-db_host = os.getenv("DB_HOST", "localhost")
+db_host = os.getenv("DB_HOST", "192.168.225.51")
 db_name = os.getenv("DB_NAME", "postgres")
 db_user = os.getenv("DB_USER", "postgres")
 db_pass = os.getenv("DB_PASS", "postgres")
