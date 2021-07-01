@@ -1,11 +1,14 @@
-FROM python:3.8-slim-buster
-COPY . /app
+FROM quay.io/ortelius/ms-python-base:flask-1.0
+
+ENV DB_HOST localhost
+ENV DB_NAME postgres
+ENV DB_USER postgres
+ENV DB_PASS postgres
+ENV DB_POST 5432
+
 WORKDIR /app
 
-RUN pip install psycopg2-binary
-RUN pip3 install -r requirements.txt
-
-EXPOSE 5000
-
-ENTRYPOINT [ "python" ]
-CMD [ "app.py" ]
+COPY main.py /app
+COPY requirements.txt /app
+RUN pip install -r requirements.txt; \
+python -m pip uninstall -y pip;
