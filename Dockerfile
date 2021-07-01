@@ -12,3 +12,6 @@ COPY main.py /app
 COPY requirements.txt /app
 RUN pip install -r requirements.txt; \
 python -m pip uninstall -y pip;
+
+#Run example:
+# docker run -it -e DB_HOST=192.168.10.96 -e DB_PORT=9876 -p 5000:80 image-name
