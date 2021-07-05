@@ -88,7 +88,7 @@ class ComponentTextfile(Resource):
 ##
 # Actually setup the Api resource routing here
 ##
-api.add_resource(ComponentTextfile, '/ms/textfile')
+api.add_resource(ComponentTextfile, '/msapi/textfile/')
   
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
