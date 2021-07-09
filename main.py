@@ -4,10 +4,24 @@ import json
 import psycopg2
 from flask import Flask, request
 from flask_restful import Api, Resource
+from flask_swagger_ui import get_swaggerui_blueprint
 
 # Initialize flask
 app = Flask(__name__)
 api = Api(app)
+
+### swagger specific ###
+SWAGGER_URL = '/swagger'
+API_URL = '/static/swagger.yml'
+SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "ortelius-ms-textfile-crud"
+    }
+)
+app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+### end swagger specific ###
 
 # Initialize database connection
 db_host = os.getenv("DB_HOST", "localhost")
