@@ -15,7 +15,7 @@ app.url_map.strict_slashes = False
 
 ### swagger specific ###
 SWAGGER_URL = '/swagger'
-API_URL = '/static/swagger.yml'
+API_URL = '/static/swagger-ui/doc/swagger.yml'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
