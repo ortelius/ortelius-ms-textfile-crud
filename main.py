@@ -1,14 +1,17 @@
 import os
 import json
+import yaml
+import base64
 
 import psycopg2
-from flask import Flask, request
+from flask import Flask, request, make_response 
 from flask_restful import Api, Resource
 from flask_swagger_ui import get_swaggerui_blueprint
 
 # Initialize flask
 app = Flask(__name__)
 api = Api(app)
+app.url_map.strict_slashes = False
 
 ### swagger specific ###
 SWAGGER_URL = '/swagger'
@@ -32,14 +35,31 @@ db_port = os.getenv("DB_PORT", "5432")
 
 conn = psycopg2.connect(host=db_host, database=db_name, user=db_user, password=db_pass, port=db_port)
 
+def get_mimetype(filetype, dstr):
+    if (filetype.lower() == 'readme'):
+        return 'text/markdown'
+    try:
+        json.loads(dstr)
+        return 'application/json' 
+    except:
+        pass
+
+    try:
+        yaml.safe_load(dstr)
+        return 'text/yaml'
+    except:
+        pass
+
+    return 'text/plain'
+
 class ComponentTextfile(Resource):
     def post(cls):
         try: 
-            input_data = request.form
+            input_data = request.get_json()
             
-            file = json.loads(input_data.get('file'))
-            compid = input_data.get('compid')
-            filetype = input_data.get('filetype')
+            file = input_data.get('file', '')
+            compid = input_data.get('compid', -1)
+            filetype = input_data.get('filetype', '')
             
             line_no = 1
             data_list = []
@@ -74,7 +94,10 @@ class ComponentTextfile(Resource):
     def get(cls):
         try: 
             compid = request.args.get('compid')
-            filetype = request.args.get('filetype')
+            filetype = request.args.get('filetype', None)
+            
+            if (filetype is None and 'swagger' in request.path):
+               filetype = 'swagger'
             
             cursor = conn.cursor()
             sql = 'SELECT * FROM dm.dm_textfile WHERE compid = %s AND filetype = %s Order by lineno'
@@ -88,8 +111,11 @@ class ComponentTextfile(Resource):
             # print (file) 
             conn.commit()   # commit the changes
             cursor.close()
-            result = {"compid": compid, "filetype":filetype, "file": file}
-            return ({"result": result, "message": f'components updated Succesfully'})
+            encoded_str = "".join(file)
+            decoded_str = base64.b64decode(encoded_str).decode("utf-8")
+            response = make_response(decoded_str)   
+            response.headers['Content-Type'] = get_mimetype(filetype, decoded_str) + '; charset=utf-8'            
+            return response
     
         except Exception as err:
             print(err)
@@ -98,6 +124,8 @@ class ComponentTextfile(Resource):
             conn.commit()
             
             return ({"message": f'oops!, Something went wrong!'})
+
+
   
 ##
 # Actually setup the Api resource routing here
@@ -105,4 +133,4 @@ class ComponentTextfile(Resource):
 api.add_resource(ComponentTextfile, '/msapi/textfile/')
   
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5002)
