@@ -4,13 +4,28 @@ import yaml
 import base64
 
 import psycopg2
+import pybreaker
 from flask import Flask, request, make_response 
 from flask_restful import Api, Resource
+from flask_swagger_ui import get_swaggerui_blueprint
 
 # Initialize flask
 app = Flask(__name__)
 api = Api(app)
 app.url_map.strict_slashes = False
+
+### swagger specific ###
+SWAGGER_URL = '/swagger'
+API_URL = '/static/swagger-ui/doc/swagger.yml'
+SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "ortelius-ms-textfile-crud"
+    }
+)
+app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+### end swagger specific ###
 
 # Initialize database connection
 db_host = os.getenv("DB_HOST", "localhost")
@@ -18,8 +33,17 @@ db_name = os.getenv("DB_NAME", "postgres")
 db_user = os.getenv("DB_USER", "postgres")
 db_pass = os.getenv("DB_PASS", "postgres")
 db_port = os.getenv("DB_PORT", "5432")
+validateuser_url = os.getenv("VALIDATEUSER_URL", "http://localhost:5000")
 
-conn = psycopg2.connect(host=db_host, database=db_name, user=db_user, password=db_pass, port=db_port)
+conn_circuit_breaker = pybreaker.CircuitBreaker(
+    fail_max=1,
+    reset_timeout=10,
+)
+
+@conn_circuit_breaker
+def create_conn():
+    conn = psycopg2.connect(host=db_host, database=db_name, user=db_user, password=db_pass, port=db_port)
+    return conn
 
 def get_mimetype(filetype, dstr):
     if (filetype.lower() == 'readme'):
@@ -40,6 +64,14 @@ def get_mimetype(filetype, dstr):
 
 class ComponentTextfile(Resource):
     def post(cls):
+        
+        result = requests.get(validateuser_url + "/msapi/validateuser", cookies=request.cookies)
+        if (result is None):
+            return None, 404
+
+        if (result.status_code != 200):
+            return result.json(), 404
+        
         try: 
             input_data = request.get_json()
             
@@ -54,6 +86,7 @@ class ComponentTextfile(Resource):
                 line_no += 1
                 data_list.append(d)
     
+            conn = create_conn()
             cursor = conn.cursor()
             #pre-processing
             pre_process = 'DELETE FROM dm.dm_textfile WHERE compid = %s AND filetype = %s;'
@@ -71,6 +104,7 @@ class ComponentTextfile(Resource):
     
         except Exception as err:
             print(err)
+            conn = create_conn()
             cursor = conn.cursor()
             cursor.execute("ROLLBACK")
             conn.commit()
@@ -78,6 +112,14 @@ class ComponentTextfile(Resource):
             return ({"message": f'oops!, Something went wrong!'})
     
     def get(cls):
+        
+        result = requests.get(validateuser_url + "/msapi/validateuser", cookies=request.cookies)
+        if (result is None):
+            return None, 404
+
+        if (result.status_code != 200):
+            return result.json(), 404
+        
         try: 
             compid = request.args.get('compid')
             filetype = request.args.get('filetype', None)
@@ -85,6 +127,7 @@ class ComponentTextfile(Resource):
             if (filetype is None and 'swagger' in request.path):
                filetype = 'swagger'
             
+            conn = create_conn()
             cursor = conn.cursor()
             sql = 'SELECT * FROM dm.dm_textfile WHERE compid = %s AND filetype = %s Order by lineno'
             cursor.execute(sql, [compid, filetype])
@@ -105,12 +148,12 @@ class ComponentTextfile(Resource):
     
         except Exception as err:
             print(err)
+            conn = create_conn()
             cursor = conn.cursor()
             cursor.execute("ROLLBACK")
             conn.commit()
             
             return ({"message": f'oops!, Something went wrong!'})
-
 
   
 ##
