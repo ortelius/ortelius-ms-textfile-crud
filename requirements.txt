@@ -1,4 +1,9 @@
-flask
-flask-restful
-psycopg2
-flask_swagger_ui
+flask=1.1.2
+flask-restful=0.3.9
+#psycopg2=2.8.6
+flask_swagger_ui=3.36.0
+pybreaker==0.6.0
+pytz==2021.1
+six==1.15.0
+sqlalchemy==1.4.22
+webargs==8.0.1
