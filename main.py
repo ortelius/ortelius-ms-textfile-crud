@@ -1,18 +1,18 @@
-import os
-import json
-import yaml
 import base64
+import json
+import os
+from http import HTTPStatus
 
 import psycopg2
 import pybreaker
-import sqlalchemy.pool as pool
 import requests
-from flask import Flask, request, make_response
+import sqlalchemy.pool as pool
+import yaml
+from flask import Flask, make_response, request
 from flask_restful import Api, Resource
 from flask_swagger_ui import get_swaggerui_blueprint
 from webargs import fields, validate
 from webargs.flaskparser import abort, parser
-from http import HTTPStatus
 
 
 @parser.error_handler
