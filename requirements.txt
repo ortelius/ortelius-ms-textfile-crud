@@ -1,4 +1,5 @@
 # psycopg2==2.8.6 - built and installed on the fly in the docker build
+# greenlet==0.4.17 - built and installed on the fly in the docker build
 aniso8601==9.0.1
 click==7.1.2
 Flask-RESTful==0.3.9
