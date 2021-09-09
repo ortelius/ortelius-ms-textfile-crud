@@ -35,7 +35,7 @@ db_port = os.getenv("DB_PORT", "5432")
 
 validateuser_url = os.getenv("VALIDATEUSER_URL", "http://localhost:5000")
 
-engine = create_engine("postgresql+psycopg2://" + db_user + ":" + db_pass + "@" + db_host + "/" + db_name)
+engine = create_engine("postgresql+psycopg2://" + db_user + ":" + db_pass + "@" + db_host + ":" + db_port + "/" + db_name)
 
 
 class StatusMsg(BaseModel):
@@ -197,7 +197,7 @@ class FileRequest(BaseModel):
                     },
           }
           )
-async def saveFileContent(fileRequest: FileRequest):
+async def saveFileContent(request: Request, fileRequest: FileRequest):
     try:
         result = requests.get(validateuser_url + "/msapi/validateuser", cookies=request.cookies)
         if (result is None):
