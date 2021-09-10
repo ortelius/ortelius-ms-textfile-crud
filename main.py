@@ -153,8 +153,7 @@ async def getFileContent(request: Request, response: Response, compid: int = Que
 
             encoded_str = "".join(file)
             decoded_str = base64.b64decode(encoded_str).decode("utf-8")
-            response.headers['Content-Type'] = get_mimetype(filetype, decoded_str) + '; charset=utf-8'
-            return decoded_str
+            return Response(content=decoded_str, media_type=get_mimetype(filetype, decoded_str))
 
     except HTTPException:
         raise
