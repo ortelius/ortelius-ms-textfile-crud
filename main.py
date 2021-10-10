@@ -8,9 +8,13 @@ from sqlalchemy import create_engine
 from fastapi import FastAPI, Query, Request, Response, HTTPException, responses, status
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from sqlalchemy.exc import OperationalError, StatementError
+from time import sleep
+import logging
 
 # Init Globals
 service_name = 'ortelius-ms-textfile-crud'
+db_conn_retry = 3
 
 # Init FastAPI
 app = FastAPI(
@@ -35,7 +39,7 @@ db_port = os.getenv("DB_PORT", "5432")
 
 validateuser_url = os.getenv("VALIDATEUSER_URL", "http://localhost:5000")
 
-engine = create_engine("postgresql+psycopg2://" + db_user + ":" + db_pass + "@" + db_host + ":" + db_port + "/" + db_name)
+engine = create_engine("postgresql+psycopg2://" + db_user + ":" + db_pass + "@" + db_host + ":" + db_port + "/" + db_name, pool_pre_ping=True)
 
 
 class StatusMsg(BaseModel):
@@ -134,27 +138,48 @@ async def getFileContent(request: Request, response: Response, compid: int = Que
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization Failed:" + str(err)) from None
 
     try:
-        with engine.connect() as connection:
-            conn = connection.connection
-
-            if (filetype is None and 'swagger' in request.path_params):
-                filetype = 'swagger'
-
-            cursor = conn.cursor()
-            sql = 'SELECT * FROM dm.dm_textfile WHERE compid = %s AND filetype = %s Order by lineno'
-            cursor.execute(sql, [compid, filetype])
-            records = cursor.fetchall()
-            cursor.close()
-            conn.commit()
-
-            file = []
-            for rec in records:
-                file.append(rec[3])
-
-            encoded_str = "".join(file)
-            decoded_str = base64.b64decode(encoded_str).decode("utf-8")
-            return Response(content=decoded_str, media_type=get_mimetype(filetype, decoded_str))
-
+        #Retry logic for failed query
+        no_of_retry = db_conn_retry
+        attempt = 1;
+        while True:
+            try:
+                with engine.connect() as connection:
+                    conn = connection.connection
+        
+                    if (filetype is None and 'swagger' in request.path_params):
+                        filetype = 'swagger'
+        
+                    cursor = conn.cursor()
+                    sql = 'SELECT * FROM dm.dm_textfile WHERE compid = %s AND filetype = %s Order by lineno'
+                    cursor.execute(sql, [compid, filetype])
+                    records = cursor.fetchall()
+                    cursor.close()
+                    conn.commit()
+        
+                    file = []
+                    for rec in records:
+                        file.append(rec[3])
+        
+                    encoded_str = "".join(file)
+                    decoded_str = base64.b64decode(encoded_str).decode("utf-8")
+                    return Response(content=decoded_str, media_type=get_mimetype(filetype, decoded_str))
+                
+            except (InterfaceError, OperationalError) as ex:
+                if attempt < no_of_retry:
+                    sleep_for = 0.2
+                    logging.error(
+                        "Database connection error: {} - sleeping for {}s"
+                        " and will retry (attempt #{} of {})".format(
+                            ex, sleep_for, attempt, no_of_retry
+                        )
+                    )
+                    #200ms of sleep time in cons. retry calls 
+                    sleep(sleep_for)
+                    attempt += 1
+                    continue
+                else:
+                    raise     
+                    
     except HTTPException:
         raise
     except Exception as err:
@@ -208,31 +233,53 @@ async def saveFileContent(request: Request, fileRequest: FileRequest):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization Failed:" + str(err)) from None
 
     try:
-        with engine.connect() as connection:
-            conn = connection.connection
-
-            line_no = 1
-            data_list = []
-            for line in fileRequest.file:
-                d = (fileRequest.compid, fileRequest.filetype, line_no, line)
-                line_no += 1
-                data_list.append(d)
-
-            cursor = conn.cursor()
-            # pre-processing
-            pre_process = 'DELETE FROM dm.dm_textfile WHERE compid = %s AND filetype = %s;'
-            cursor.execute(pre_process, [fileRequest.compid, fileRequest.filetype])
-
-            if len(data_list) > 0:
-                records_list_template = ','.join(['%s'] * len(data_list))
-                sql = 'INSERT INTO dm.dm_textfile(compid, filetype, lineno, base64str) VALUES {}'.format(records_list_template)
-                cursor.execute(sql, data_list)
-
-            cursor.close()
-            conn.commit()
-
-            return Message(detail='components updated succesfully')
-
+        
+        #Retry logic for failed query
+        no_of_retry = db_conn_retry
+        attempt = 1;
+        while True:
+            try:
+                with engine.connect() as connection:
+                    conn = connection.connection
+        
+                    line_no = 1
+                    data_list = []
+                    for line in fileRequest.file:
+                        d = (fileRequest.compid, fileRequest.filetype, line_no, line)
+                        line_no += 1
+                        data_list.append(d)
+        
+                    cursor = conn.cursor()
+                    # pre-processing
+                    pre_process = 'DELETE FROM dm.dm_textfile WHERE compid = %s AND filetype = %s;'
+                    cursor.execute(pre_process, [fileRequest.compid, fileRequest.filetype])
+        
+                    if len(data_list) > 0:
+                        records_list_template = ','.join(['%s'] * len(data_list))
+                        sql = 'INSERT INTO dm.dm_textfile(compid, filetype, lineno, base64str) VALUES {}'.format(records_list_template)
+                        cursor.execute(sql, data_list)
+        
+                    cursor.close()
+                    conn.commit()
+        
+                    return Message(detail='components updated succesfully')
+                
+            except (InterfaceError, OperationalError) as ex:
+                if attempt < no_of_retry:
+                    sleep_for = 0.2
+                    logging.error(
+                        "Database connection error: {} - sleeping for {}s"
+                        " and will retry (attempt #{} of {})".format(
+                            ex, sleep_for, attempt, no_of_retry
+                        )
+                    )
+                    #200ms of sleep time in cons. retry calls 
+                    sleep(sleep_for)
+                    attempt += 1
+                    continue
+                else:
+                    raise
+                
     except HTTPException:
         raise
     except Exception as err:
