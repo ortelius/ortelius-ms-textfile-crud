@@ -1,0 +1,40 @@
+Chart: chart/ms-textfile-crud
+ChartNamespace: ortelius
+DockerRepo: quay.io/ortelius/ms-textfile-crud
+DockerSha: 3353f0d8be92f8b6cfbfafadaaf9b230be018d31556ca7c374abbfcdd0413268
+DockerTag: deploy-v10.0.0.35-g30b4e31
+EXT: sh
+GitBranch: deploy
+GitCommit: 30b4e31
+GitRepo: ortelius/ortelius-ms-textfile-crud
+GitTag: deploy
+GitUrl: git@github.com:ortelius/ortelius-ms-textfile-crud.git
+RE_PHYSICAL_HOSTNAME: localhost
+RE_PHYSICAL_SERVER: localhost
+aks:
+  admin: true
+  certificate: /root/.ssh/aks.pem
+  cluster: cluster2-aks
+  resourcegroup: cluster1-rg
+application: ortelius-devops;10_0_11
+builddate: Wed Dec  1 23:56:01 UTC 2021
+buildid: e7a366a8-cffd-419d-894c-06f0d73c2a88
+buildurl: https://console.cloud.google.com/cloud-build/builds/e7a366a8-cffd-419d-894c-06f0d73c2a88?project=eighth-physics-169321
+chart: chart/ms-textfile-crud
+chartnamespace: ortelius
+chartpublish: Y
+component: ms-textfile-crud;deploy;v10_0_0_35_g30b4e31
+dockerrepo: quay.io/ortelius/ms-textfile-crud
+dockersha: 3353f0d8be92f8b6cfbfafadaaf9b230be018d31556ca7c374abbfcdd0413268
+dockertag: deploy-v10.0.0.35-g30b4e31
+dropzone: /tmp/tdm.1464.11
+environment: aks-cluster
+gitcommit: 30b4e31
+gitrepo: ortelius/ortelius-ms-textfile-crud
+gittag: deploy
+giturl: git@github.com:ortelius/ortelius-ms-textfile-crud.git
+image:
+  pullPolicy: Always
+kubectl_context: cluster2-aks-admin
+server_hostname: localhost
+server_name: localhost
