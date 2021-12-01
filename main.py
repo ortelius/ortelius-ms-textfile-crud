@@ -1,13 +1,16 @@
-import os
-import json
-import yaml
 import base64
-import requests
-import psycopg2
-from sqlalchemy import create_engine
-from fastapi import FastAPI, Query, Request, Response, HTTPException, responses, status
-from pydantic import BaseModel, Field
+import json
+import os
 from typing import List, Optional
+
+import psycopg2
+import requests
+import uvicorn
+import yaml
+from fastapi import (FastAPI, HTTPException, Query, Request, Response,
+                     responses, status)
+from pydantic import BaseModel, Field
+from sqlalchemy import create_engine
 
 # Init Globals
 service_name = 'ortelius-ms-textfile-crud'
@@ -238,3 +241,6 @@ async def saveFileContent(request: Request, fileRequest: FileRequest):
     except Exception as err:
         print(str(err))
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)) from None
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5002)
