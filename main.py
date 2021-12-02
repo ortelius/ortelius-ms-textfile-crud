@@ -12,25 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import json
-import yaml
 import base64
 import json
+import logging
 import os
+from http import HTTPStatus
+from time import sleep
 from typing import List, Optional
 
 import psycopg2
+import psycopg2.extras
 import requests
 import uvicorn
 import yaml
 from fastapi import (FastAPI, HTTPException, Query, Request, Response,
                      responses, status)
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError, StatementError
-from time import sleep
-import logging
 
 # Init Globals
 service_name = 'ortelius-ms-textfile-crud'
@@ -60,6 +59,8 @@ db_port = os.getenv("DB_PORT", "5432")
 validateuser_url = os.getenv("VALIDATEUSER_URL", "http://localhost:5000")
 
 engine = create_engine("postgresql+psycopg2://" + db_user + ":" + db_pass + "@" + db_host + ":" + db_port + "/" + db_name, pool_pre_ping=True)
+
+# health check endpoint
 
 
 class StatusMsg(BaseModel):
@@ -97,10 +98,12 @@ async def health(response: Response):
                 return {"status": 'UP', "service_name": service_name}
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
             return {"status": 'DOWN'}
+
     except Exception as err:
         print(str(err))
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {"status": 'DOWN'}
+# end health check
 
 
 def get_mimetype(filetype, dstr):
