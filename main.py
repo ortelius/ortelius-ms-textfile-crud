@@ -16,6 +16,7 @@ import base64
 import json
 import logging
 import os
+import socket
 from http import HTTPStatus
 from time import sleep
 from typing import List, Optional
@@ -29,7 +30,7 @@ from fastapi import (FastAPI, HTTPException, Query, Request, Response,
                      responses, status)
 from pydantic import BaseModel, Field
 from sqlalchemy import create_engine
-from sqlalchemy.exc import OperationalError, StatementError
+from sqlalchemy.exc import OperationalError, StatementError, InterfaceError
 
 # Init Globals
 service_name = 'ortelius-ms-textfile-crud'
