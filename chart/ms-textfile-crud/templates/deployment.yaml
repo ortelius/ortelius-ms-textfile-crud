@@ -35,8 +35,6 @@ spec:
           image: "{{ .Values.DockerRepo }}:{{ .Values.DockerTag }}"
           imagePullPolicy: Always
           env:
-            - name: VALIDATEUSER_URL
-              value: {{ .Values.ValidateUserUrl | default "http://ms-validate-user.{{ metadata.namespace }}.svc.cluster.local" }}
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
