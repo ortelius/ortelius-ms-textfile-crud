@@ -12,41 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BuildNumber: 0
-Chart: chart/ms-textfile-crud
-ChartNamespace: ortelius
-CustomAction: GLOBAL.HelmChart
 DockerRepo: quay.io/ortelius/ms-textfile-crud
 DockerSha: 2646f894502d7111364d47af2709dcf4b733fa7770c81a72a6ddb0c3dd5208e7
 DockerTag: deploy-v10.0.0.41-gcf0f4ee
-EXT: sh
-GitBranch: deploy
-GitCommit: 66a06cf
-GitRepo: ortelius/ortelius-ms-textfile-crud
-GitTag: deploy
-GitUrl: git@github.com:ortelius/ortelius-ms-textfile-crud.git
-RE_PHYSICAL_HOSTNAME: localhost
-RE_PHYSICAL_SERVER: localhost
-aks:
-  admin: true
-  cluster: cluster2-aks
-  resourcegroup: cluster1-rg
-application: ortelius-devops
-builddate: Mon Sep 13 22:15:12 UTC 2021
-buildid: 19cab0ab-9ae8-4605-bc8c-d68fdb80dcff
-buildurl: https://console.cloud.google.com/cloud-build/builds/19cab0ab-9ae8-4605-bc8c-d68fdb80dcff?project=eighth-physics-169321
-chart: chart/ms-textfile-crud
-chartnamespace: ortelius
-component: ms-textfile-crud;deploy;v10_0_0_41_gcf0f4ee
-dockerrepo: quay.io/ortelius/ms-textfile-crud
-dockersha: 2646f894502d7111364d47af2709dcf4b733fa7770c81a72a6ddb0c3dd5208e7
-dockertag: deploy-v10.0.0.41-gcf0f4ee
-dropzone: /tmp/tdm.1250.7
-environment: aks-cluster
-gitcommit: 66a06cf
-gitrepo: ortelius/ortelius-ms-textfile-crud
-gittag: deploy
-giturl: git@github.com:ortelius/ortelius-ms-textfile-crud.git
-kubectl_context: cluster2-aks-admin
-server_hostname: localhost
-server_name: localhost
