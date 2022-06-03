@@ -131,7 +131,7 @@ class Message(BaseModel):
     detail: str
 
 
-@app.get('/msapi/textfile/',
+@app.get('/msapi/textfile',
          responses={
              401: {"model": Message,
                    "description": "Authorization Status",
@@ -219,7 +219,7 @@ class FileRequest(BaseModel):
     file: List[str]
 
 
-@app.post('/msapi/textfile/',
+@app.post('/msapi/textfile',
           responses={
               401: {"model": Message,
                     "description": "Authorization Status",
