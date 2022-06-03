@@ -30,7 +30,7 @@ from fastapi import (FastAPI, HTTPException, Query, Request, Response,
                      responses, status)
 from pydantic import BaseModel, Field
 from sqlalchemy import create_engine
-from sqlalchemy.exc import OperationalError, StatementError, InterfaceError
+from sqlalchemy.exc import InterfaceError, OperationalError, StatementError
 
 # Init Globals
 service_name = 'ortelius-ms-textfile-crud'
